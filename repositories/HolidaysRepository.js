@@ -9,3 +9,14 @@ export async function createHoliday(cityId, day, month, year, name, type) {
   
     return rows
 }
+
+export async function findHoliday(day, month, year, cityId) {
+    const query = `
+      SELECT * FROM services.holidays
+      WHERE day = $1 AND month = $2 AND year = $3 AND city_id = $4
+    `;
+  
+    const {rows} = await db.query(query, [day, month, year, cityId]);
+  
+    return rows
+}

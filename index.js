@@ -1,7 +1,9 @@
 import * as puppeteer from 'puppeteer';
 import delay from './utils/delay.js';
+import pool from './config/database.js';
 
 (async () => {
+  const database = await pool.connect()
   const browser = await puppeteer.launch({headless: false});
   const page = await browser.newPage();
 

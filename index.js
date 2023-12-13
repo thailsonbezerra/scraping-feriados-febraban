@@ -2,6 +2,7 @@ import * as puppeteer from 'puppeteer';
 import delay from './utils/delay.js';
 import { findCity } from './repositories/CitiesRepository.js';
 import { createHoliday, findHoliday } from './repositories/HolidaysRepository.js';
+import fs from 'fs/promises';
 
 (async () => {
   const browser = await puppeteer.launch({headless: false});
@@ -16,9 +17,14 @@ import { createHoliday, findHoliday } from './repositories/HolidaysRepository.js
     return options.map(option => option.textContent);
   });
 
-  for (let uf of ufList) {
-    if(uf === 'UF') continue;
+  const filePath = './files/ufs_processadas.txt';
+  const ufsProcessadas = await lerArquivo(filePath);
 
+  for (let uf of ufList) {
+
+    if(uf === 'UF' || ufsProcessadas.includes(uf)) continue;
+
+    
     await page.select('#Uf', uf);
     await delay(2500)
   
@@ -74,13 +80,28 @@ import { createHoliday, findHoliday } from './repositories/HolidaysRepository.js
             console.log(`Cadastrando feriado ${nome} para a cidade ${municipio} - ${uf}`);
             await createHoliday(cityId, dia, mes, ano, nome, 2);
           }
-                 
-       // process.exit()
-    }
+        }
 
+  
+      await fs.appendFile(filePath, `${uf}\n`, 'utf8');
   }
 
   await browser.close();
 
   process.exit()
 })();
+
+const lerArquivo = async (filePath) => {
+  try {
+    const data = await fs.readFile(filePath, 'utf8');
+    return data;
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      await fs.mkdir('./files', { recursive: true });
+      await fs.writeFile(filePath, '', 'utf8');
+      return ''; 
+    } else {
+      throw err; 
+    }
+  }
+};

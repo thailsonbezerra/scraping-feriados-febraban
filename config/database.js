@@ -2,7 +2,7 @@ import pkg from 'pg';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-const pool = new pkg.Pool({
+const db = new pkg.Pool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   database: process.env.DB_NAME,
@@ -10,4 +10,4 @@ const pool = new pkg.Pool({
   password: process.env.DB_PASSWORD,
 });
 
-export default pool;
+export default db;

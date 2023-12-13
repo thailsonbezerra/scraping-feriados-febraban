@@ -1,9 +1,8 @@
 import * as puppeteer from 'puppeteer';
 import delay from './utils/delay.js';
-import pool from './config/database.js';
+import { findCity } from './repositories/CitiesRepository.js';
 
 (async () => {
-  const database = await pool.connect()
   const browser = await puppeteer.launch({headless: false});
   const page = await browser.newPage();
 
@@ -31,34 +30,38 @@ import pool from './config/database.js';
     for (let municipio of MunicipioList) {
         if(municipio === 'Selecione um Município') continue;
         
-        console.log(municipio)
+        const cities = await findCity(uf, municipio);
 
-        await page.select('#Municipio', `${municipio}`);
-        await delay(2000);
+        if(cities.length === 0) {
+          console.log(`Cidade ${municipio} não encontrada para o estado ${uf}`)
+          continue
+        }
+         await page.select('#Municipio', `${municipio}`);
+         await delay(2000);
 
-        await page.click('.botao');
+         await page.click('.botao');
 
-        await delay(2000)
+         await delay(2000)
 
-        const feriadosRows = await page.$$eval('#tbodyMunicipais > tr', trs => {
-          return trs.map(tr => {
-            const tds = tr.querySelectorAll('td');
-            return Array.from(tds).map(td => td.textContent.trim());
-          });
-_       })
+         const feriadosRows = await page.$$eval('#tbodyMunicipais > tr', trs => {
+           return trs.map(tr => {
+             const tds = tr.querySelectorAll('td');
+             return Array.from(tds).map(td => td.textContent.trim());
+           });
+ _       })
 
-        const feriados = feriadosRows.map(row => ({
-          data: {
-            dia: +row[0].split('/')[0],
-            mes: +row[0].split('/')[1],
-            ano: +row[0].split('/')[2].substring(0, 4),
-          },
-          estado: row[1],
-          municipio: row[2],
-          tipo: row[3],
-        }));
+         const feriados = feriadosRows.map(row => ({
+           data: {
+             dia: +row[0].split('/')[0],
+             mes: +row[0].split('/')[1],
+             ano: +row[0].split('/')[2].substring(0, 4),
+           },
+           estado: row[1],
+           municipio: row[2],
+           tipo: row[3],
+         }));
 
-        console.log(feriados);
+         console.log(feriados);
         await delay(300000)
         
        // process.exit()

@@ -1,6 +1,7 @@
 import * as puppeteer from 'puppeteer';
 import delay from './utils/delay.js';
 import { findCity } from './repositories/CitiesRepository.js';
+import { createHoliday } from './repositories/HolidaysRepository.js';
 
 (async () => {
   const browser = await puppeteer.launch({headless: false});
@@ -24,8 +25,6 @@ import { findCity } from './repositories/CitiesRepository.js';
     const MunicipioList = await page.$$eval('#Municipio > option', options => {
         return options.map(option => option.textContent.trim());
       });
-
-      console.log(MunicipioList)
 
     for (let municipio of MunicipioList) {
         if(municipio === 'Selecione um Município') continue;
@@ -56,13 +55,24 @@ import { findCity } from './repositories/CitiesRepository.js';
              mes: +row[0].split('/')[1],
              ano: +row[0].split('/')[2].substring(0, 4),
            },
+           nome: `${row[0]} - ${row[2]}/${row[1]}`,
            estado: row[1],
            municipio: row[2],
            tipo: row[3],
          }));
 
-         console.log(feriados);
-        await delay(300000)
+         for (const feriado of feriados) {
+            const { dia, mes, ano } = feriado.data;
+            const { nome } = feriado;
+            const cityId = +cities[0].id;
+            console.log(feriado)
+
+
+            const result = await createHoliday(cityId, dia, mes, ano, nome, 2);
+            console.log(result)
+          }
+         
+          await delay(2000)
         
        // process.exit()
     }

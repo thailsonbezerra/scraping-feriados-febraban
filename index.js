@@ -14,17 +14,32 @@ import delay from './utils/delay.js';
     return options.map(option => option.textContent);
   });
 
-  console.log(ufList)
-
   for (let uf of ufList) {
     if(uf === 'UF') continue;
 
     await page.select('#Uf', uf);
+    await delay(2000);
+
+    const MunicipioList = await page.$$eval('#Municipio > option', options => {
+        return options.map(option => option.textContent.trim());
+      });
+
+      console.log(MunicipioList)
+
+    for (let municipio of MunicipioList) {
+        if(municipio === 'Selecione um Município') continue;
+        
+        console.log(municipio)
+
+        await page.select('#Municipio', `${municipio}`);
+        await delay(2000);
+
+        await page.click('.botao');
+
+        await delay(2000)
+    }
+
   }
-
-  await page.click('.botao');
-
-  await delay(10000);
 
   await browser.close();
 
